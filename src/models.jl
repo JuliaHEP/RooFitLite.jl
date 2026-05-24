@@ -40,6 +40,14 @@ function Base.rand(rng::AbstractRNG, d::AbstractPdf, n::Int64=1)
     rand(rng, distribution(d), n)
 end
 
+"""
+    RealVar(name, value=0, error=0; limits=(-Inf, Inf), nbins=0)
+    RealVar{T}(name, value=0, error=0; limits=(-Inf, Inf), nbins=0)
+
+Store an observable or floating model parameter with a symbolic `name`, current
+`value`, uncertainty `error`, allowed `limits`, and optional histogram `nbins`.
+Parameterized construction with `RealVar{T}` creates a constant variable.
+"""
 mutable struct RealVar{T<:Real}
     const name::Symbol
     value::T
@@ -83,6 +91,12 @@ end
 setindex!(v::RealVar, value) = setproperty!(v, :value, value)
 isconst(v::RealVar) = v.isconst
 
+"""
+    ConstVar(name, value)
+    ConstVar(value=0.0)
+
+Create a constant [`RealVar`](@ref) whose value cannot be changed by a fit.
+"""
 function ConstVar(name, value::T) where {T<:Real}
     RealVar{T}(name, value, 0, (value, value), 0, true)
 end
@@ -93,17 +107,35 @@ end
 
 abstract type AbstractData end
 
+"""
+    DataSet(data, observables)
+
+Container for generated or user-provided data together with the observables that
+describe the data dimensions.
+"""
 struct DataSet{T<:Real,N} <: AbstractData
     data::Union{Array{T,N},AbstractHistogram}
     observables::NTuple{N,RealVar{T}}
 end
 
+"""
+    FitResult(data, model, engine)
+
+Result returned by [`fitTo`](@ref), storing the input data, fitted model, and
+underlying minimization engine.
+"""
 struct FitResult
     data::DataSet
     model::AbstractPdf
     engine
 end
 
+"""
+    Gaussian(name, x, mean, sigma)
+
+Build a normalized Gaussian PDF in observable `x` with mean and width variables.
+The PDF is truncated to `x.limits`.
+"""
 struct Gaussian{T<:Real,PDF<:Function} <: AbstractPdf
     name::Symbol
     x::RealVar{T}
@@ -134,6 +166,12 @@ end
 
 distribution(d::Gaussian) = truncated(_Normal(d.μ.value, d.σ.value), d.x.limits...)
 
+"""
+    Exponential(name, x, c)
+
+Build a normalized exponential PDF in observable `x` with slope parameter `c`.
+The PDF is truncated to `x.limits`.
+"""
 struct Exponential{T<:Real,PDF<:Function} <: AbstractPdf
     name::Symbol
     x::RealVar{T}
@@ -162,6 +200,11 @@ end
 
 distribution(d::Exponential) = truncated(_Exponential(-1 / d.c.value), d.x.limits...)
 
+"""
+    ArgusPdf(name, x, m0, c, p=ConstVar(:p, 0.5))
+
+Build a normalized ARGUS background PDF in observable `x`.
+"""
 struct ArgusPdf{T<:Real,PDF<:Function} <: AbstractPdf
     name::Symbol
     x::RealVar{T}
@@ -193,6 +236,11 @@ end
 
 distribution(d::ArgusPdf) = truncated(ArgusBGDist(d.c.value, d.p.value, 0, d.m₀.value), d.x.limits...)
 
+"""
+    Chebyshev(name, x, coeffs)
+
+Build a Chebyshev PDF in observable `x` from a vector of coefficient variables.
+"""
 struct Chebyshev{T<:Real,PDF<:Function} <: AbstractPdf
     name::Symbol
     x::RealVar{T}
@@ -220,6 +268,14 @@ end
 
 distribution(d::Chebyshev) = ChebyshevDist([c.value for c in d.coeffs], d.x.limits...)
 
+"""
+    AddPdf(name, pdfs, coefs)
+    AddPdf(name, pdf1, pdf2, fraction)
+
+Combine PDFs that share one observable. If `coefs` has one entry fewer than
+`pdfs`, coefficients are interpreted as recursive fractions. If it has the same
+length, coefficients are interpreted as extended yields.
+"""
 struct AddPdf{T<:Real,PDFS<:Tuple,F<:Function} <: AbstractPdf
     name::Symbol
     x::RealVar{T}
