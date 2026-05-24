@@ -1,0 +1,5 @@
+Manifest.toml
+*.cov
+*.jl.cov
+*.jl.*.cov
+coverage/
