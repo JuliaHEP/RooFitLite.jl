@@ -1,6 +1,8 @@
 # RooFitLite.jl
 
 ![AI contribution](https://img.shields.io/badge/significant_AI_contribution-human_in_charge-orange.svg)
+[![Tests](https://github.com/JuliaHEP/RooFitLite.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/JuliaHEP/RooFitLite.jl/actions/workflows/ci.yml)
+[![Documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaHEP.github.io/RooFitLite.jl/dev/)
 
 Lightweight RooFit-style model construction for Julia HEP analyses.
 
