@@ -1,6 +1,6 @@
 # RooFitLite.jl
 
-https://img.shields.io/badge/significant_AI_contribution-human_in_charge-orange.svg
+![AI contribution](https://img.shields.io/badge/significant_AI_contribution-human_in_charge-orange.svg)
 
 Lightweight RooFit-style model construction for Julia HEP analyses.
 
